@@ -196,6 +196,15 @@ if (document.getElementById('form-servico')) {
             mensagem.textContent = "Não há serviços na lista para enviar.";
             return;
         }
+        
+        const confirmarEnvio = confirm("Tem certeza que deseja enviar todos os serviços?");
+    
+
+        if (!confirmarEnvio) {
+            // Opcional: Você pode adicionar uma mensagem para o usuário
+            console.log("Envio cancelado.");
+            return;
+        }
 
         try {
             for (const servico of servicosPendentes) {
