@@ -55,6 +55,7 @@ if (document.getElementById('form-login')) {
 }
 
 // Lógica para a página de registro de serviço (index.html)
+// Lógica para a página de registro de serviço (index.html)
 if (document.getElementById('form-servico')) {
     const formServico = document.getElementById('form-servico');
     const btnRegistrar = document.getElementById('btn-registrar');
@@ -76,6 +77,30 @@ if (document.getElementById('form-servico')) {
     // Função para salvar serviços no localStorage
     function salvarServicosNoLocalStorage() {
         localStorage.setItem('servicosPendentes', JSON.stringify(servicosPendentes));
+    }
+
+    // Função para limpar os inputs do formulário de funcionário
+    function limparInputsFuncionarios() {
+        formServico.elements.funcionario1.value = '';
+        formServico.elements.funcionario2.value = '';
+        formServico.elements.funcionario3.value = '';
+        formServico.elements.funcionario4.value = '';
+        // Nota: Seu HTML tem 5 campos de funcionário, mas o JS original só pegava 4.
+        // Mantive a lógica para 4 campos para ser consistente com o código fornecido.
+        // Se precisar incluir o 5º, adicione a linha correspondente aqui.
+    }
+
+    // Função para preencher os inputs de funcionário
+    function preencherInputsFuncionarios(nomes) {
+        limparInputsFuncionarios(); // Limpa antes de preencher para garantir que não fiquem valores antigos
+        if (nomes && nomes.length > 0) {
+            formServico.elements.funcionario1.value = nomes[0] || '';
+            if (nomes.length > 1) formServico.elements.funcionario2.value = nomes[1] || '';
+            if (nomes.length > 2) formServico.elements.funcionario3.value = nomes[2] || '';
+            if (nomes.length > 3) formServico.elements.funcionario4.value = nomes[3] || '';
+            // Se houver um 5º campo de funcionário no seu HTML, descomente a linha abaixo:
+            // if (nomes.length > 4) formServico.elements.funcionario5.value = nomes[4] || '';
+        }
     }
 
     // Função para atualizar a tabela na tela
@@ -105,9 +130,18 @@ if (document.getElementById('form-servico')) {
                 celulaAcoes.appendChild(btnEditar);
             });
             btnEnviarTodos.style.display = 'block';
+
+            // --- INÍCIO DA NOVA LÓGICA ---
+            // Preenche os inputs de funcionário com o último serviço adicionado NA TABELA
+            const ultimoServicoAdicionado = servicosPendentes[servicosPendentes.length - 1];
+            preencherInputsFuncionarios(ultimoServicoAdicionado.nomesFuncionarios);
+            // --- FIM DA NOVA LÓGICA ---
+
         } else {
             tabelaContainerPendentes.style.display = 'none';
             btnEnviarTodos.style.display = 'none';
+            // Se a lista estiver vazia (após envio ou no carregamento inicial), limpa os inputs de funcionário
+            limparInputsFuncionarios();
         }
     }
 
@@ -117,10 +151,15 @@ if (document.getElementById('form-servico')) {
             const index = e.target.getAttribute('data-index');
             const servicoParaEditar = servicosPendentes[index];
 
+            // Preenche os inputs com os dados do serviço a ser editado
+            // Nota: O preenchimento aqui deve ser feito antes de remover o item da lista
             formServico.elements.funcionario1.value = servicoParaEditar.nomesFuncionarios[0] || '';
             formServico.elements.funcionario2.value = servicoParaEditar.nomesFuncionarios[1] || '';
             formServico.elements.funcionario3.value = servicoParaEditar.nomesFuncionarios[2] || '';
             formServico.elements.funcionario4.value = servicoParaEditar.nomesFuncionarios[3] || '';
+            // Se houver um 5º campo de funcionário no seu HTML, descomente a linha abaixo:
+            // formServico.elements.funcionario5.value = servicoParaEditar.nomesFuncionarios[4] || '';
+
             formServico.elements.dia.value = servicoParaEditar.dia;
             formServico.elements.horaInicio.value = servicoParaEditar.horaInicio;
             formServico.elements.horaTermino.value = servicoParaEditar.horaTermino;
@@ -128,15 +167,15 @@ if (document.getElementById('form-servico')) {
             formServico.elements.tipoServico.value = servicoParaEditar.tipoServico;
             formServico.elements.turno.value = servicoParaEditar.turno;
 
+            // Remove o serviço da lista para edição
             servicosPendentes.splice(index, 1);
             salvarServicosNoLocalStorage();
-            atualizarTabelaPendentes();
+            atualizarTabelaPendentes(); // Atualiza a tabela e, se houver outros serviços, preenche os campos
 
             mensagem.textContent = "Serviço carregado no formulário para edição.";
         }
     });
 
-    // Evento para o botão 'Registrar Serviço na Lista'
     // Evento para o botão 'Registrar Serviço na Lista'
     btnRegistrar.addEventListener('click', (e) => {
         e.preventDefault();
@@ -150,10 +189,20 @@ if (document.getElementById('form-servico')) {
         const nome2 = formServico.elements.funcionario2.value;
         const nome3 = formServico.elements.funcionario3.value;
         const nome4 = formServico.elements.funcionario4.value;
+        // Se houver um 5º campo de funcionário no seu HTML, descomente a linha abaixo:
+        // const nome5 = formServico.elements.funcionario5.value;
 
-        const nomesArray = [nome1, nome2, nome3, nome4].filter(nome => nome !== '');
+        // Ajuste para pegar todos os campos de funcionário que existam no HTML
+        const nomesSelecionados = [];
+        for (let i = 1; i <= 5; i++) { // Itera de 1 a 5 para verificar os campos funcionario1 a funcionario5
+            const selectElement = formServico.elements[`funcionario${i}`];
+            if (selectElement && selectElement.value) {
+                nomesSelecionados.push(selectElement.value);
+            }
+        }
 
-        if (nomesArray.length === 0) {
+
+        if (nomesSelecionados.length === 0) {
             mensagem.textContent = "Selecione pelo menos um funcionário.";
             return;
         }
@@ -175,7 +224,7 @@ if (document.getElementById('form-servico')) {
         }
 
         const novoServico = {
-            nomesFuncionarios: nomesArray,
+            nomesFuncionarios: nomesSelecionados, // Usa os nomes selecionados diretamente
             dia: formServico.elements.dia.value,
             horaInicio: formServico.elements.horaInicio.value,
             horaTermino: formServico.elements.horaTermino.value,
@@ -186,10 +235,24 @@ if (document.getElementById('form-servico')) {
 
         servicosPendentes.push(novoServico);
         mensagem.textContent = "Serviço adicionado à lista!";
-        formServico.reset();
+
+        // --- NOVA LÓGICA AQUI ---
+        // Salva no localStorage ANTES de resetar, para que os nomes fiquem disponíveis
         salvarServicosNoLocalStorage();
+        // Atualiza a tabela. Essa chamada vai preencher os campos de funcionário
+        // com base no último serviço adicionado (o que acabamos de pushar).
         atualizarTabelaPendentes();
+        // Agora, resetamos o formulário APENAS para os campos que NÃO são de funcionário.
+        // Os campos de funcionário serão preenchidos pela função atualizarTabelaPendentes.
+        formServico.elements.dia.value = '';
+        formServico.elements.horaInicio.value = '';
+        formServico.elements.horaTermino.value = '';
+        formServico.elements.nomeServico.value = '';
+        formServico.elements.tipoServico.value = formServico.elements.tipoServico.options[0].value; // Reseta para o primeiro tipo de serviço
+        formServico.elements.turno.value = formServico.elements.turno.options[0].value; // Reseta para o primeiro turno
+        // --- FIM DA NOVA LÓGICA ---
     });
+
     // Evento para o botão 'Enviar Todos para o Banco de Dados'
     btnEnviarTodos.addEventListener('click', async () => {
         if (servicosPendentes.length === 0) {
@@ -234,6 +297,7 @@ if (document.getElementById('form-servico')) {
             mensagem.textContent = "Todos os serviços foram registrados com sucesso!";
             servicosPendentes = [];
             localStorage.removeItem('servicosPendentes');
+            // Ao limpar a lista, a atualizarTabelaPendentes() vai chamar limparInputsFuncionarios()
             atualizarTabelaPendentes();
         } catch (error) {
             console.error("Erro ao adicionar documentos: ", error);
@@ -244,10 +308,10 @@ if (document.getElementById('form-servico')) {
             btnEnviarTodos.textContent = 'Enviar Todos para o Banco de Dados';
         }
     });
+
     carregarServicosDoLocalStorage();
     atualizarTabelaPendentes();
 }
-
 // Lógica para o painel do administrador (admin.html)
 if (document.getElementById('tabela-servicos')) {
 
