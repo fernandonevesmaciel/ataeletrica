@@ -54,7 +54,7 @@ if (document.getElementById('form-login')) {
     });
 }
 
-// Lógica para a página de registro de serviço (index.html)
+
 // Lógica para a página de registro de serviço (index.html)
 if (document.getElementById('form-servico')) {
     const formServico = document.getElementById('form-servico');
@@ -130,6 +130,8 @@ if (document.getElementById('form-servico')) {
             const ultimoServicoAdicionado = servicosPendentes[servicosPendentes.length - 1];
             preencherInputsFuncionarios(ultimoServicoAdicionado.nomesFuncionarios);
             formServico.elements.dia.value = ultimoServicoAdicionado.dia;
+            // ALTERAÇÃO 1: Adicionado para manter o turno predefinido
+            formServico.elements.turno.value = ultimoServicoAdicionado.turno;
 
         } else {
             tabelaContainerPendentes.style.display = 'none';
@@ -224,7 +226,8 @@ if (document.getElementById('form-servico')) {
         formServico.elements.horaTermino.value = '';
         formServico.elements.nomeServico.value = '';
         formServico.elements.tipoServico.value = formServico.elements.tipoServico.options[0].value;
-        formServico.elements.turno.value = formServico.elements.turno.options[0].value;
+        // ALTERAÇÃO 2: A linha abaixo foi removida para não resetar o turno
+        // formServico.elements.turno.value = formServico.elements.turno.options[0].value;
     });
 
     // Evento para o botão 'Enviar Todos para o Banco de Dados'
@@ -280,6 +283,7 @@ if (document.getElementById('form-servico')) {
     carregarServicosDoLocalStorage();
     atualizarTabelaPendentes();
 }
+
 // Lógica para o painel do administrador (admin.html)
 if (document.getElementById('tabela-servicos')) {
 
