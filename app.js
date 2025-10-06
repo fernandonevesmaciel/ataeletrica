@@ -55,7 +55,6 @@ if (document.getElementById('form-login')) {
 }
 
 // Lógica para a página de registro de serviço (index.html)
-// Lógica para a página de registro de serviço (index.html)
 if (document.getElementById('form-servico')) {
     const formServico = document.getElementById('form-servico');
     const btnRegistrar = document.getElementById('btn-registrar');
@@ -98,7 +97,6 @@ if (document.getElementById('form-servico')) {
         }
     }
 
-    // Função para atualizar a tabela na tela
     function atualizarTabelaPendentes() {
         tabelaCorpoPendentes.innerHTML = '';
         if (servicosPendentes.length > 0) {
@@ -123,6 +121,14 @@ if (document.getElementById('form-servico')) {
                 btnEditar.classList.add('btn-editar');
                 btnEditar.setAttribute('data-index', index);
                 celulaAcoes.appendChild(btnEditar);
+
+                // ===== INÍCIO DA ALTERAÇÃO =====
+                const btnExcluir = document.createElement('button');
+                btnExcluir.textContent = 'Excluir';
+                btnExcluir.classList.add('btn-excluir'); // Adiciona uma classe para identificar o botão
+                btnExcluir.setAttribute('data-index', index); // Usa o mesmo índice para saber qual item remover
+                celulaAcoes.appendChild(btnExcluir);
+                // ===== FIM DA ALTERAÇÃO =====
             });
             btnEnviarTodos.style.display = 'block';
 
@@ -140,8 +146,8 @@ if (document.getElementById('form-servico')) {
         }
     }
 
-    // Lógica para o botão de edição
     tabelaCorpoPendentes.addEventListener('click', (e) => {
+        // Lógica para o botão EDITAR
         if (e.target.classList.contains('btn-editar')) {
             const index = e.target.getAttribute('data-index');
             const servicoParaEditar = servicosPendentes[index];
@@ -165,8 +171,28 @@ if (document.getElementById('form-servico')) {
 
             mensagem.textContent = "Serviço carregado no formulário para edição.";
         }
-    });
 
+        // ===== INÍCIO DA ALTERAÇÃO =====
+        // Lógica para o botão EXCLUIR
+        if (e.target.classList.contains('btn-excluir')) {
+            const index = e.target.getAttribute('data-index');
+
+            // Pede confirmação ao usuário antes de excluir
+            if (confirm("Tem certeza que deseja excluir este serviço da lista?")) {
+                // Remove o serviço do array 'servicosPendentes'
+                servicosPendentes.splice(index, 1);
+
+                // Salva a lista atualizada no localStorage
+                salvarServicosNoLocalStorage();
+
+                // Atualiza a tabela na tela para refletir a remoção
+                atualizarTabelaPendentes();
+
+                mensagem.textContent = "Serviço removido da lista.";
+            }
+        }
+        // ===== FIM DA ALTERAÇÃO =====
+    });
     // Evento para o botão 'Registrar Serviço na Lista'
     btnRegistrar.addEventListener('click', (e) => {
         e.preventDefault();
