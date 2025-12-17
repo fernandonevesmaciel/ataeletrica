@@ -345,6 +345,7 @@ if (document.getElementById('tabela-servicos')) {
     const horasDisponiveisPorFuncionario = {
         "Rafael": 440,
         "Fernando": 440,
+        "Mateus Maciel": 440,
         "Marcos": 440,
         "Alisson": 440,
         "Eduardo": 440,
