@@ -144,7 +144,40 @@
             </div>
 
             <button id="btn-enviar-todos" style="display: none; background-color:red;">Enviar Todos os Serviços</button>
-            
+
+        </div>
+        <div id="btn-toggle-calendar" class="floating-btn">
+            📅
+        </div>
+
+        <div id="sidebar-calendar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Verificar Atas</h3>
+                <button id="btn-close-calendar">×</button>
+            </div>
+
+            <div class="sidebar-content">
+                <label for="filtro-turno-calendario">Selecione o Turno:</label>
+                <select id="filtro-turno-calendario">
+                    <option value="1 turno">1º Turno</option>
+                    <option value="2 turno">2º Turno</option>
+                    <option value="3 turno">3º Turno</option>
+                </select>
+
+                <div class="calendar-controls">
+                    <button id="prev-month">&lt;</button>
+                    <span id="current-month-year">Janeiro 2026</span>
+                    <button id="next-month">&gt;</button>
+                </div>
+
+                <div class="calendar-grid" id="calendar-grid">
+                </div>
+
+                <div class="legenda">
+                    <div class="item-legenda"><span class="bolinha verde"></span> Feito</div>
+                    <div class="item-legenda"><span class="bolinha cinza"></span> Pendente</div>
+                </div>
+            </div>
         </div>
 
         <p id="mensagem"></p>

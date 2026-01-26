@@ -307,6 +307,156 @@ if (document.getElementById('form-servico')) {
         }
     });
 
+    // ======================================================
+    // LÓGICA DO CALENDÁRIO LATERAL (POP-UP)
+    // ======================================================
+
+    if (document.getElementById('sidebar-calendar')) {
+        const btnToggle = document.getElementById('btn-toggle-calendar');
+        const btnClose = document.getElementById('btn-close-calendar');
+        const sidebar = document.getElementById('sidebar-calendar');
+        const calendarGrid = document.getElementById('calendar-grid');
+        const currentMonthYear = document.getElementById('current-month-year');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        const filtroTurnoCalendario = document.getElementById('filtro-turno-calendario');
+
+        let dataAtualCalendario = new Date();
+
+        // Abrir/Fechar Sidebar
+        btnToggle.addEventListener('click', () => {
+            sidebar.classList.add('aberto');
+            renderizarCalendario(); // Carrega ao abrir
+        });
+
+        btnClose.addEventListener('click', () => {
+            sidebar.classList.remove('aberto');
+        });
+
+        // Navegação de Mês
+        prevMonthBtn.addEventListener('click', () => {
+            dataAtualCalendario.setMonth(dataAtualCalendario.getMonth() - 1);
+            renderizarCalendario();
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            dataAtualCalendario.setMonth(dataAtualCalendario.getMonth() + 1);
+            renderizarCalendario();
+        });
+
+        // Mudar Turno recarrega
+        filtroTurnoCalendario.addEventListener('change', () => {
+            renderizarCalendario();
+        });
+
+        // Função Principal de Renderização
+        async function renderizarCalendario() {
+            calendarGrid.innerHTML = '<p style="grid-column: span 7; text-align: center;">Carregando...</p>';
+
+            const ano = dataAtualCalendario.getFullYear();
+            const mes = dataAtualCalendario.getMonth();
+            const turnoSelecionado = filtroTurnoCalendario.value;
+
+            // Atualiza o texto do cabeçalho
+            const nomeMes = dataAtualCalendario.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            currentMonthYear.textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
+
+            // Busca dias com serviço no Firebase
+            const diasComServico = await buscarDiasComServico(ano, mes, turnoSelecionado);
+
+            calendarGrid.innerHTML = ''; // Limpa loading
+
+            // Cabeçalho dos dias da semana
+            const diasSemana = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+            diasSemana.forEach(d => {
+                const div = document.createElement('div');
+                div.classList.add('calendar-day');
+                div.style.fontWeight = 'bold';
+                div.style.backgroundColor = 'transparent';
+                div.textContent = d;
+                calendarGrid.appendChild(div);
+            });
+
+            // Lógica de dias
+            const primeiroDiaDoMes = new Date(ano, mes, 1).getDay();
+            const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+
+            // Espaços vazios antes do dia 1
+            for (let i = 0; i < primeiroDiaDoMes; i++) {
+                const vazio = document.createElement('div');
+                calendarGrid.appendChild(vazio);
+            }
+
+            // Preenche os dias
+            for (let dia = 1; dia <= diasNoMes; dia++) {
+                const elDia = document.createElement('div');
+                elDia.classList.add('calendar-day');
+                elDia.textContent = dia;
+
+                // Formata dia para string YYYY-MM-DD para comparar (ajuste conforme seu banco)
+                // Nota: No seu banco você salva como Date object, mas para comparar visualmente é mais fácil usar dia numérico
+                if (diasComServico.includes(dia)) {
+                    elDia.classList.add('tem-ata');
+                    elDia.title = `Serviço registrado no ${turnoSelecionado}`;
+                } else {
+                    elDia.classList.add('sem-ata');
+                }
+
+                calendarGrid.appendChild(elDia);
+            }
+        }
+
+        // Função que consulta o Firebase
+        async function buscarDiasComServico(ano, mes, turno) {
+            // Define inicio e fim do mês para a query
+            const dataInicio = new Date(ano, mes, 1);
+            const dataFim = new Date(ano, mes + 1, 1);
+
+            console.log(`Buscando dados: Turno ${turno} | De ${dataInicio.toLocaleDateString()} até ${dataFim.toLocaleDateString()}`);
+
+            try {
+                const servicosRef = collection(db, "servicos");
+
+                // Query composta
+                const q = query(
+                    servicosRef,
+                    where("turno", "==", turno),
+                    where("dataRegistro", ">=", dataInicio),
+                    where("dataRegistro", "<", dataFim)
+                );
+
+                const querySnapshot = await getDocs(q);
+                const diasEncontrados = new Set();
+
+                if (querySnapshot.empty) {
+                    console.warn("Nenhum serviço encontrado para este filtro.");
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const dados = doc.data();
+                    // Verifica se dataRegistro existe e é um Timestamp
+                    if (dados.dataRegistro && typeof dados.dataRegistro.toDate === 'function') {
+                        const data = dados.dataRegistro.toDate();
+                        console.log("Serviço encontrado no dia:", data.getDate());
+                        diasEncontrados.add(data.getDate());
+                    } else {
+                        // Caso tenha salvo como string em vez de Date no banco antigo
+                        console.log("Formato de data diferente encontrado:", dados.dataRegistro);
+                    }
+                });
+
+                return Array.from(diasEncontrados);
+
+            } catch (error) {
+                console.error("ERRO AO BUSCAR CALENDÁRIO:", error);
+                if (error.message.includes("index")) {
+                    alert("Erro de Índice: Abra o console (F12) e clique no link do Firebase para criar o índice.");
+                }
+                return [];
+            }
+        }
+    }
+
     carregarServicosDoLocalStorage();
     atualizarTabelaPendentes();
 }
@@ -1082,6 +1232,7 @@ if (document.getElementById('tabela-servicos')) {
             console.error("Erro ao fazer logout: ", error);
         }
     });
+
 
 
     // ======================================================================================
