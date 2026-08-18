@@ -505,7 +505,7 @@ if (document.getElementById('tabela-servicos')) {
         "Jonathan": 440,
         "Cleiton": 440,
         "Phelipe": 440,
-        "Cristiano":440
+        "Richard":440
     };
 
     // ======================================================================================
