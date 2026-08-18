@@ -890,10 +890,10 @@ if (document.getElementById('tabela-servicos')) {
 
             const tiposServico = [
                 "ajuste/reparo/concerto",
-                "emergencial",
-                "inspecao/checklist",
                 "limpeza_e_organizacao",
                 "melhoria",
+                "emergencial",
+                "inspecao/checklist",
                 "preventiva",
                 "programada",
                 "qualidade",
