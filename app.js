@@ -494,7 +494,6 @@ if (document.getElementById('tabela-servicos')) {
     // Nova estrutura de dados para horas disponíveis por funcionário
     const horasDisponiveisPorFuncionario = {
         "Rafael": 440,
-        "Fernando": 440,
         "Marcos": 440,
         "Alisson": 440,
         "Eduardo": 440,
