@@ -1,6 +1,23 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    query, 
+    where, 
+    orderBy, 
+    limit, 
+    updateDoc, 
+    doc, 
+    deleteDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Sua configuração do Firebase
 const firebaseConfig = {
@@ -18,7 +35,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Lógica para a página de login (login.html)
+// ======================================================
+// 1. PÁGINA DE LOGIN (login.html)
+// ======================================================
 if (document.getElementById('form-login')) {
     const formLogin = document.getElementById('form-login');
     const mensagemLogin = document.getElementById('mensagem-login');
@@ -54,8 +73,9 @@ if (document.getElementById('form-login')) {
     });
 }
 
-// Lógica para a página de registro de serviço (index.html)
-// Lógica para a página de registro de serviço (index.html)
+// ======================================================
+// 2. REGISTRO DE SERVIÇO (index.html)
+// ======================================================
 if (document.getElementById('form-servico')) {
     const formServico = document.getElementById('form-servico');
     const btnRegistrar = document.getElementById('btn-registrar');
@@ -66,7 +86,6 @@ if (document.getElementById('form-servico')) {
 
     let servicosPendentes = [];
 
-    // Função para carregar serviços do localStorage
     function carregarServicosDoLocalStorage() {
         const servicosSalvos = localStorage.getItem('servicosPendentes');
         if (servicosSalvos) {
@@ -74,20 +93,18 @@ if (document.getElementById('form-servico')) {
         }
     }
 
-    // Função para salvar serviços no localStorage
     function salvarServicosNoLocalStorage() {
         localStorage.setItem('servicosPendentes', JSON.stringify(servicosPendentes));
     }
 
-    // Função para limpar os inputs do formulário de funcionário
     function limparInputsFuncionarios() {
         formServico.elements.funcionario1.value = '';
         formServico.elements.funcionario2.value = '';
         formServico.elements.funcionario3.value = '';
         formServico.elements.funcionario4.value = '';
+        if (formServico.elements.funcionario5) formServico.elements.funcionario5.value = '';
     }
 
-    // Função para preencher os inputs de funcionário
     function preencherInputsFuncionarios(nomes) {
         limparInputsFuncionarios();
         if (nomes && nomes.length > 0) {
@@ -95,6 +112,7 @@ if (document.getElementById('form-servico')) {
             if (nomes.length > 1) formServico.elements.funcionario2.value = nomes[1] || '';
             if (nomes.length > 2) formServico.elements.funcionario3.value = nomes[2] || '';
             if (nomes.length > 3) formServico.elements.funcionario4.value = nomes[3] || '';
+            if (nomes.length > 4 && formServico.elements.funcionario5) formServico.elements.funcionario5.value = nomes[4] || '';
         }
     }
 
@@ -123,43 +141,39 @@ if (document.getElementById('form-servico')) {
                 btnEditar.setAttribute('data-index', index);
                 celulaAcoes.appendChild(btnEditar);
 
-                // ===== INÍCIO DA ALTERAÇÃO =====
                 const btnExcluir = document.createElement('button');
                 btnExcluir.textContent = 'Excluir';
-                btnExcluir.classList.add('btn-excluir'); // Adiciona uma classe para identificar o botão
-                btnExcluir.setAttribute('data-index', index); // Usa o mesmo índice para saber qual item remover
+                btnExcluir.classList.add('btn-excluir');
+                btnExcluir.setAttribute('data-index', index);
                 celulaAcoes.appendChild(btnExcluir);
-                // ===== FIM DA ALTERAÇÃO =====
             });
             btnEnviarTodos.style.display = 'block';
 
-            // Preenche os inputs do formulário com o último serviço adicionado
             const ultimoServicoAdicionado = servicosPendentes[servicosPendentes.length - 1];
             preencherInputsFuncionarios(ultimoServicoAdicionado.nomesFuncionarios);
             formServico.elements.dia.value = ultimoServicoAdicionado.dia;
-            // ALTERAÇÃO 1: Adicionado para manter o turno predefinido
             formServico.elements.turno.value = ultimoServicoAdicionado.turno;
 
         } else {
             tabelaContainerPendentes.style.display = 'none';
             btnEnviarTodos.style.display = 'none';
-            // Quando a lista está vazia, limpa todos os campos
             limparInputsFuncionarios();
             formServico.elements.dia.value = '';
         }
     }
 
     tabelaCorpoPendentes.addEventListener('click', (e) => {
-        // Lógica para o botão EDITAR
         if (e.target.classList.contains('btn-editar')) {
             const index = e.target.getAttribute('data-index');
             const servicoParaEditar = servicosPendentes[index];
 
-            // Preenche os inputs com os dados do serviço a ser editado
             formServico.elements.funcionario1.value = servicoParaEditar.nomesFuncionarios[0] || '';
             formServico.elements.funcionario2.value = servicoParaEditar.nomesFuncionarios[1] || '';
             formServico.elements.funcionario3.value = servicoParaEditar.nomesFuncionarios[2] || '';
             formServico.elements.funcionario4.value = servicoParaEditar.nomesFuncionarios[3] || '';
+            if (formServico.elements.funcionario5) {
+                formServico.elements.funcionario5.value = servicoParaEditar.nomesFuncionarios[4] || '';
+            }
             formServico.elements.dia.value = servicoParaEditar.dia;
             formServico.elements.horaInicio.value = servicoParaEditar.horaInicio;
             formServico.elements.horaTermino.value = servicoParaEditar.horaTermino;
@@ -167,7 +181,6 @@ if (document.getElementById('form-servico')) {
             formServico.elements.tipoServico.value = servicoParaEditar.tipoServico;
             formServico.elements.turno.value = servicoParaEditar.turno;
 
-            // Remove o serviço da lista para edição
             servicosPendentes.splice(index, 1);
             salvarServicosNoLocalStorage();
             atualizarTabelaPendentes();
@@ -175,28 +188,17 @@ if (document.getElementById('form-servico')) {
             mensagem.textContent = "Serviço carregado no formulário para edição.";
         }
 
-        // ===== INÍCIO DA ALTERAÇÃO =====
-        // Lógica para o botão EXCLUIR
         if (e.target.classList.contains('btn-excluir')) {
             const index = e.target.getAttribute('data-index');
-
-            // Pede confirmação ao usuário antes de excluir
             if (confirm("Tem certeza que deseja excluir este serviço da lista?")) {
-                // Remove o serviço do array 'servicosPendentes'
                 servicosPendentes.splice(index, 1);
-
-                // Salva a lista atualizada no localStorage
                 salvarServicosNoLocalStorage();
-
-                // Atualiza a tabela na tela para refletir a remoção
                 atualizarTabelaPendentes();
-
                 mensagem.textContent = "Serviço removido da lista.";
             }
         }
-        // ===== FIM DA ALTERAÇÃO =====
     });
-    // Evento para o botão 'Registrar Serviço na Lista'
+
     btnRegistrar.addEventListener('click', (e) => {
         e.preventDefault();
 
@@ -253,20 +255,15 @@ if (document.getElementById('form-servico')) {
         formServico.elements.horaTermino.value = '';
         formServico.elements.nomeServico.value = '';
         formServico.elements.tipoServico.value = formServico.elements.tipoServico.options[0].value;
-        // ALTERAÇÃO 2: A linha abaixo foi removida para não resetar o turno
-        // formServico.elements.turno.value = formServico.elements.turno.options[0].value;
     });
 
-    // Evento para o botão 'Enviar Todos para o Banco de Dados'
     btnEnviarTodos.addEventListener('click', async () => {
         if (servicosPendentes.length === 0) {
             mensagem.textContent = "Não há serviços na lista para enviar.";
             return;
         }
 
-        const confirmarEnvio = confirm("Tem certeza que deseja enviar todos os serviços?");
-
-        if (!confirmarEnvio) {
+        if (!confirm("Tem certeza que deseja enviar todos os serviços?")) {
             return;
         }
 
@@ -277,6 +274,8 @@ if (document.getElementById('form-servico')) {
         try {
             const promises = [];
             for (const servico of servicosPendentes) {
+                const dataRegistro = new Date(servico.dia.replace(/-/g, '\/'));
+
                 for (const nome of servico.nomesFuncionarios) {
                     promises.push(
                         addDoc(collection(db, "servicos"), {
@@ -287,7 +286,7 @@ if (document.getElementById('form-servico')) {
                             nomeServico: servico.nomeServico,
                             tipoServico: servico.tipoServico,
                             turno: servico.turno,
-                            dataRegistro: new Date(servico.dia.replace(/-/g, '\/'))
+                            dataRegistro: dataRegistro
                         })
                     );
                 }
@@ -307,10 +306,7 @@ if (document.getElementById('form-servico')) {
         }
     });
 
-    // ======================================================
-    // LÓGICA DO CALENDÁRIO LATERAL (POP-UP)
-    // ======================================================
-
+    // Sidebar Calendário
     if (document.getElementById('sidebar-calendar')) {
         const btnToggle = document.getElementById('btn-toggle-calendar');
         const btnClose = document.getElementById('btn-close-calendar');
@@ -323,17 +319,15 @@ if (document.getElementById('form-servico')) {
 
         let dataAtualCalendario = new Date();
 
-        // Abrir/Fechar Sidebar
         btnToggle.addEventListener('click', () => {
             sidebar.classList.add('aberto');
-            renderizarCalendario(); // Carrega ao abrir
+            renderizarCalendario();
         });
 
         btnClose.addEventListener('click', () => {
             sidebar.classList.remove('aberto');
         });
 
-        // Navegação de Mês
         prevMonthBtn.addEventListener('click', () => {
             dataAtualCalendario.setMonth(dataAtualCalendario.getMonth() - 1);
             renderizarCalendario();
@@ -344,12 +338,10 @@ if (document.getElementById('form-servico')) {
             renderizarCalendario();
         });
 
-        // Mudar Turno recarrega
         filtroTurnoCalendario.addEventListener('change', () => {
             renderizarCalendario();
         });
 
-        // Função Principal de Renderização
         async function renderizarCalendario() {
             calendarGrid.innerHTML = '<p style="grid-column: span 7; text-align: center;">Carregando...</p>';
 
@@ -357,16 +349,12 @@ if (document.getElementById('form-servico')) {
             const mes = dataAtualCalendario.getMonth();
             const turnoSelecionado = filtroTurnoCalendario.value;
 
-            // Atualiza o texto do cabeçalho
             const nomeMes = dataAtualCalendario.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
             currentMonthYear.textContent = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
 
-            // Busca dias com serviço no Firebase
             const diasComServico = await buscarDiasComServico(ano, mes, turnoSelecionado);
+            calendarGrid.innerHTML = '';
 
-            calendarGrid.innerHTML = ''; // Limpa loading
-
-            // Cabeçalho dos dias da semana
             const diasSemana = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
             diasSemana.forEach(d => {
                 const div = document.createElement('div');
@@ -377,24 +365,19 @@ if (document.getElementById('form-servico')) {
                 calendarGrid.appendChild(div);
             });
 
-            // Lógica de dias
             const primeiroDiaDoMes = new Date(ano, mes, 1).getDay();
             const diasNoMes = new Date(ano, mes + 1, 0).getDate();
 
-            // Espaços vazios antes do dia 1
             for (let i = 0; i < primeiroDiaDoMes; i++) {
                 const vazio = document.createElement('div');
                 calendarGrid.appendChild(vazio);
             }
 
-            // Preenche os dias
             for (let dia = 1; dia <= diasNoMes; dia++) {
                 const elDia = document.createElement('div');
                 elDia.classList.add('calendar-day');
                 elDia.textContent = dia;
 
-                // Formata dia para string YYYY-MM-DD para comparar (ajuste conforme seu banco)
-                // Nota: No seu banco você salva como Date object, mas para comparar visualmente é mais fácil usar dia numérico
                 if (diasComServico.includes(dia)) {
                     elDia.classList.add('tem-ata');
                     elDia.title = `Serviço registrado no ${turnoSelecionado}`;
@@ -406,18 +389,12 @@ if (document.getElementById('form-servico')) {
             }
         }
 
-        // Função que consulta o Firebase
         async function buscarDiasComServico(ano, mes, turno) {
-            // Define inicio e fim do mês para a query
             const dataInicio = new Date(ano, mes, 1);
             const dataFim = new Date(ano, mes + 1, 1);
 
-            console.log(`Buscando dados: Turno ${turno} | De ${dataInicio.toLocaleDateString()} até ${dataFim.toLocaleDateString()}`);
-
             try {
                 const servicosRef = collection(db, "servicos");
-
-                // Query composta
                 const q = query(
                     servicosRef,
                     where("turno", "==", turno),
@@ -428,30 +405,17 @@ if (document.getElementById('form-servico')) {
                 const querySnapshot = await getDocs(q);
                 const diasEncontrados = new Set();
 
-                if (querySnapshot.empty) {
-                    console.warn("Nenhum serviço encontrado para este filtro.");
-                }
-
                 querySnapshot.forEach((doc) => {
                     const dados = doc.data();
-                    // Verifica se dataRegistro existe e é um Timestamp
                     if (dados.dataRegistro && typeof dados.dataRegistro.toDate === 'function') {
                         const data = dados.dataRegistro.toDate();
-                        console.log("Serviço encontrado no dia:", data.getDate());
                         diasEncontrados.add(data.getDate());
-                    } else {
-                        // Caso tenha salvo como string em vez de Date no banco antigo
-                        console.log("Formato de data diferente encontrado:", dados.dataRegistro);
                     }
                 });
 
                 return Array.from(diasEncontrados);
-
             } catch (error) {
                 console.error("ERRO AO BUSCAR CALENDÁRIO:", error);
-                if (error.message.includes("index")) {
-                    alert("Erro de Índice: Abra o console (F12) e clique no link do Firebase para criar o índice.");
-                }
                 return [];
             }
         }
@@ -461,7 +425,9 @@ if (document.getElementById('form-servico')) {
     atualizarTabelaPendentes();
 }
 
-// Lógica para o painel do administrador (admin.html)
+// ======================================================
+// 3. PAINEL DO ADMINISTRADOR (admin.html)
+// ======================================================
 if (document.getElementById('tabela-servicos')) {
 
     const tabelaCorpo = document.getElementById('tabela-servicos').getElementsByTagName('tbody')[0];
@@ -479,19 +445,16 @@ if (document.getElementById('tabela-servicos')) {
     const visualizadorHoras = document.getElementById('visualizador-horas');
     const containerHorasDisponiveis = document.getElementById('container-horas-disponiveis');
 
-    // Novos elementos do modal
     const exportarPDFBtn = document.getElementById('exportar-pdf');
     const modalContainer = document.getElementById('modal-container');
     const modalFiltroData = document.getElementById('modal-filtro-data');
     const modalExportarBtn = document.getElementById('modal-exportar-btn');
     const modalCancelarBtn = document.getElementById('modal-cancelar-btn');
 
-    // Novos elementos de filtro de horas
     const filtroMesInput = document.getElementById('filtro-mes');
     const aplicarFiltroMesBtn = document.getElementById('aplicar-filtro-mes-btn');
     const jornadaDiariaEmMinutos = 440; // 7h20m convertidos para minutos
 
-    // Nova estrutura de dados para horas disponíveis por funcionário
     const horasDisponiveisPorFuncionario = {
         "Rafael": 440,
         "Marcos": 440,
@@ -504,15 +467,9 @@ if (document.getElementById('tabela-servicos')) {
         "Jonathan": 440,
         "Cleiton": 440,
         "Phelipe": 440,
-        "Richard":440
+        "Richard": 440
     };
 
-    // ======================================================================================
-    // FUNÇÕES GLOBAIS DENTRO DO ESCOPO DE ADMIN.HTML
-    // Mover as funções de carregamento para o topo para evitar o ReferenceError
-    // ======================================================================================
-
-    // Função para calcular a diferença de tempo em minutos
     function calcularDiferencaEmMinutos(horaInicio, horaTermino) {
         const [hInicio, mInicio] = horaInicio.split(':').map(Number);
         const [hTermino, mTermino] = horaTermino.split(':').map(Number);
@@ -520,9 +477,6 @@ if (document.getElementById('tabela-servicos')) {
         const totalMinutosInicio = hInicio * 60 + mInicio;
         let totalMinutosTermino = hTermino * 60 + mTermino;
 
-        // Se a hora de término for menor que a hora de início,
-        // significa que o serviço terminou no dia seguinte.
-        // Adicionamos 24 horas (1440 minutos) à hora de término para o cálculo.
         if (totalMinutosTermino < totalMinutosInicio) {
             totalMinutosTermino += 1440;
         }
@@ -530,19 +484,14 @@ if (document.getElementById('tabela-servicos')) {
         return totalMinutosTermino - totalMinutosInicio;
     }
 
-    // Função para formatar minutos em HH:MM
     function formatarMinutosParaHoras(minutos) {
         const h = Math.floor(minutos / 60);
         const m = minutos % 60;
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
     }
 
-    // NOVA FUNÇÃO para exibir a tabela de horas por funcionário
     async function exibirHorasPorFuncionario(mesSelecionado) {
-        if (!containerHorasDisponiveis) {
-            console.error("Elemento 'container-horas-disponiveis' não encontrado.");
-            return;
-        }
+        if (!containerHorasDisponiveis || !mesSelecionado) return;
 
         const [ano, mes] = mesSelecionado.split('-').map(Number);
         const dataInicioMes = new Date(ano, mes - 1, 1);
@@ -559,212 +508,6 @@ if (document.getElementById('tabela-servicos')) {
         const horasTrabalhadasPorFuncionario = {};
         const diasTrabalhadosPorFuncionario = {};
 
-        // INICIALIZAÇÃO DAS VARIÁVEIS DE TOTAIS
-        let totalHorasDisponiveisMinutos = 0;
-        let totalHorasTrabalhadasMinutos = 0;
-        let funcionariosComDados = 0;
-
-        // Inicializa contadores
-        for (const funcionario in horasDisponiveisPorFuncionario) {
-            horasTrabalhadasPorFuncionario[funcionario] = 0;
-            diasTrabalhadosPorFuncionario[funcionario] = new Set();
-        }
-
-        // Soma as horas trabalhadas e conta os dias únicos
-        querySnapshot.forEach(doc => {
-            const dados = doc.data();
-            const { nomeFuncionario, horaInicio, horaTermino, dataRegistro } = dados;
-
-            if (horasDisponiveisPorFuncionario.hasOwnProperty(nomeFuncionario)) {
-                const minutosTrabalhados = calcularDiferencaEmMinutos(horaInicio, horaTermino);
-                horasTrabalhadasPorFuncionario[nomeFuncionario] += minutosTrabalhados;
-                const dataString = dataRegistro.toDate().toISOString().split('T')[0];
-                diasTrabalhadosPorFuncionario[nomeFuncionario].add(dataString);
-            }
-        });
-
-        // Gera o HTML da tabela
-        let tabelaHTML = `
-        <h2>Horas por Funcionário</h2>
-        <table class="tabela-contagem">
-            <thead>
-                <tr>
-                    <th>Funcionário</th>
-                    <th>Horas Disponíveis</th>
-                    <th>Horas Trabalhadas</th>
-                    <th>Aproveitamento</th>
-                    <th>Dias Trabalhados</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-        const funcionarios = Object.keys(horasDisponiveisPorFuncionario);
-
-        if (funcionarios.length === 0) {
-            tabelaHTML += `<tr><td colspan="5">Nenhum funcionário cadastrado ou dados para o período.</td></tr>`;
-        } else {
-            for (const funcionario of funcionarios) {
-                const diasTrabalhados = diasTrabalhadosPorFuncionario[funcionario].size;
-                const horasDisponiveisEmMinutos = diasTrabalhados * jornadaDiariaEmMinutos;
-                const horasTrabalhadasEmMinutos = horasTrabalhadasPorFuncionario[funcionario];
-
-                let aproveitamento = 0;
-                let corClasse = '';
-
-                if (horasDisponiveisEmMinutos > 0) {
-                    aproveitamento = (horasTrabalhadasEmMinutos / horasDisponiveisEmMinutos) * 100;
-                    if (aproveitamento > 100) {
-                        corClasse = 'red-text';
-                    } else if (aproveitamento < 50) {
-                        corClasse = 'yellow-text';
-                    }
-                }
-
-                // Acumula os totais para o cálculo do aproveitamento da equipe
-                if (diasTrabalhados > 0) {
-                    totalHorasDisponiveisMinutos += horasDisponiveisEmMinutos;
-                    totalHorasTrabalhadasMinutos += horasTrabalhadasEmMinutos;
-                    funcionariosComDados++;
-                }
-
-                tabelaHTML += `
-                <tr>
-                    <td>${funcionario}</td>
-                    <td>${formatarMinutosParaHoras(horasDisponiveisEmMinutos)}</td>
-                    <td>${formatarMinutosParaHoras(horasTrabalhadasEmMinutos)}</td>
-                    <td class="${corClasse}">${aproveitamento.toFixed(2)}%</td>
-                    <td>${diasTrabalhados}</td>
-                </tr>
-            `;
-            }
-
-            // ====================================================================
-            // NOVO CÁLCULO DE APROVEITAMENTO DA EQUIPE
-            // ====================================================================
-            let aproveitamentoTotalEquipe = 0;
-            if (totalHorasDisponiveisMinutos > 0) {
-                aproveitamentoTotalEquipe = (totalHorasTrabalhadasMinutos / totalHorasDisponiveisMinutos) * 100;
-            }
-
-            let corTotalAproveitamento = '';
-            if (aproveitamentoTotalEquipe < 80 || aproveitamentoTotalEquipe > 99) {
-                corTotalAproveitamento = 'red-text';
-            }
-
-            tabelaHTML += `
-            <tr class="tabela-totais">
-                <td><strong>Total da Equipe</strong></td>
-                <td><strong>${formatarMinutosParaHoras(totalHorasDisponiveisMinutos)}</strong></td>
-                <td><strong>${formatarMinutosParaHoras(totalHorasTrabalhadasMinutos)}</strong></td>
-                <td class="${corTotalAproveitamento}"><strong>${aproveitamentoTotalEquipe.toFixed(2)}%</strong></td>
-                <td></td>
-            </tr>
-        `;
-        }
-
-        tabelaHTML += `
-            </tbody>
-        </table>
-    `;
-
-        containerHorasDisponiveis.innerHTML = tabelaHTML;
-    }
-    // Função para exportar a tabela visível para PDF
-    async function exportarParaPDF(mesSelecionado) {
-        if (!mesSelecionado) return;
-
-        const [ano, mes] = mesSelecionado.split('-').map(Number);
-        const dataInicioMes = new Date(ano, mes - 1, 1);
-        const dataFimMes = new Date(ano, mes, 1);
-
-        const q = query(
-            collection(db, "servicos"),
-            where("dataRegistro", ">=", dataInicioMes),
-            where("dataRegistro", "<", dataFimMes),
-            orderBy("dataRegistro", "asc")
-        );
-
-        const querySnapshot = await getDocs(q);
-        const dadosExportar = [];
-        querySnapshot.forEach(doc => {
-            dadosExportar.push(doc.data());
-        });
-
-        if (dadosExportar.length === 0) {
-            alert("Nenhum serviço encontrado para o mês selecionado.");
-            return;
-        }
-
-        const contagemDeServicoHTML = await gerarQuantidadesDeServicoHTML(mesSelecionado);
-        const horasPorFuncionarioHTML = await gerarHorasPorFuncionarioPDF(mesSelecionado);
-
-        const tabelaHTML = `
-        <style>
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                table-layout: fixed;
-                margin-top: 20px;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-                word-wrap: break-word;
-            }
-            th {
-                background-color: #f2f2f2;
-            }
-            @media print {
-                table, tr, td {
-                    page-break-inside: avoid;
-                }
-                .tabela-relatorio {
-                    page-break-after: always;
-                }
-            }
-        </style>
-        <h1>Relatório de Serviços - Mês: ${mes} / ${ano}</h1>
-        <br>
-        <div class="tabela-relatorio">
-            ${contagemDeServicoHTML}
-        </div>
-        <div class="tabela-relatorio">
-            ${horasPorFuncionarioHTML}
-        </div>
-
-    `;
-
-        const opt = {
-            margin: 1,
-            filename: `relatorio-servicos-${mes}-${ano}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
-            pagebreak: { mode: 'avoid-all' }
-        };
-
-        html2pdf().from(tabelaHTML).set(opt).save();
-    }
-    // Nova função para gerar a tabela de horas para o PDF
-    async function gerarHorasPorFuncionarioPDF(mesSelecionado) {
-        const [ano, mes] = mesSelecionado.split('-').map(Number);
-        const dataInicioMes = new Date(ano, mes - 1, 1);
-        const dataFimMes = new Date(ano, mes, 1);
-
-        const servicosRef = collection(db, "servicos");
-        const q = query(
-            servicosRef,
-            where("dataRegistro", ">=", dataInicioMes),
-            where("dataRegistro", "<", dataFimMes)
-        );
-
-        const querySnapshot = await getDocs(q);
-        const horasTrabalhadasPorFuncionario = {};
-        const diasTrabalhadosPorFuncionario = {};
-
-        // INICIALIZAÇÃO DAS VARIÁVEIS DE TOTAIS
         let totalHorasDisponiveisMinutos = 0;
         let totalHorasTrabalhadasMinutos = 0;
 
@@ -822,7 +565,6 @@ if (document.getElementById('tabela-servicos')) {
                     }
                 }
 
-                // Acumula os totais para o cálculo do aproveitamento da equipe
                 if (diasTrabalhados > 0) {
                     totalHorasDisponiveisMinutos += horasDisponiveisEmMinutos;
                     totalHorasTrabalhadasMinutos += horasTrabalhadasEmMinutos;
@@ -839,9 +581,200 @@ if (document.getElementById('tabela-servicos')) {
                 `;
             }
 
-            // ====================================================================
-            // CÁLCULO DE APROVEITAMENTO DA EQUIPE NO PDF
-            // ====================================================================
+            let aproveitamentoTotalEquipe = 0;
+            if (totalHorasDisponiveisMinutos > 0) {
+                aproveitamentoTotalEquipe = (totalHorasTrabalhadasMinutos / totalHorasDisponiveisMinutos) * 100;
+            }
+
+            let corTotalAproveitamento = '';
+            if (aproveitamentoTotalEquipe < 80 || aproveitamentoTotalEquipe > 99) {
+                corTotalAproveitamento = 'red-text';
+            }
+
+            tabelaHTML += `
+                <tr class="tabela-totais">
+                    <td><strong>Total da Equipe</strong></td>
+                    <td><strong>${formatarMinutosParaHoras(totalHorasDisponiveisMinutos)}</strong></td>
+                    <td><strong>${formatarMinutosParaHoras(totalHorasTrabalhadasMinutos)}</strong></td>
+                    <td class="${corTotalAproveitamento}"><strong>${aproveitamentoTotalEquipe.toFixed(2)}%</strong></td>
+                    <td></td>
+                </tr>
+            `;
+        }
+
+        tabelaHTML += `
+                </tbody>
+            </table>
+        `;
+
+        containerHorasDisponiveis.innerHTML = tabelaHTML;
+    }
+
+    async function exportarParaPDF(mesSelecionado) {
+        if (!mesSelecionado) return;
+
+        const [ano, mes] = mesSelecionado.split('-').map(Number);
+        const dataInicioMes = new Date(ano, mes - 1, 1);
+        const dataFimMes = new Date(ano, mes, 1);
+
+        const q = query(
+            collection(db, "servicos"),
+            where("dataRegistro", ">=", dataInicioMes),
+            where("dataRegistro", "<", dataFimMes),
+            orderBy("dataRegistro", "asc")
+        );
+
+        const querySnapshot = await getDocs(q);
+        const dadosExportar = [];
+        querySnapshot.forEach(doc => {
+            dadosExportar.push(doc.data());
+        });
+
+        if (dadosExportar.length === 0) {
+            alert("Nenhum serviço encontrado para o mês selecionado.");
+            return;
+        }
+
+        const contagemDeServicoHTML = await gerarQuantidadesDeServicoHTML(mesSelecionado);
+        const horasPorFuncionarioHTML = await gerarHorasPorFuncionarioPDF(mesSelecionado);
+
+        const tabelaHTML = `
+            <style>
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                    margin-top: 20px;
+                }
+                th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                    word-wrap: break-word;
+                }
+                th {
+                    background-color: #f2f2f2;
+                }
+                @media print {
+                    table, tr, td {
+                        page-break-inside: avoid;
+                    }
+                    .tabela-relatorio {
+                        page-break-after: always;
+                    }
+                }
+            </style>
+            <h1>Relatório de Serviços - Mês: ${mes} / ${ano}</h1>
+            <br>
+            <div class="tabela-relatorio">
+                ${contagemDeServicoHTML}
+            </div>
+            <div class="tabela-relatorio">
+                ${horasPorFuncionarioHTML}
+            </div>
+        `;
+
+        const opt = {
+            margin: 1,
+            filename: `relatorio-servicos-${mes}-${ano}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' },
+            pagebreak: { mode: 'avoid-all' }
+        };
+
+        html2pdf().from(tabelaHTML).set(opt).save();
+    }
+
+    async function gerarHorasPorFuncionarioPDF(mesSelecionado) {
+        const [ano, mes] = mesSelecionado.split('-').map(Number);
+        const dataInicioMes = new Date(ano, mes - 1, 1);
+        const dataFimMes = new Date(ano, mes, 1);
+
+        const servicosRef = collection(db, "servicos");
+        const q = query(
+            servicosRef,
+            where("dataRegistro", ">=", dataInicioMes),
+            where("dataRegistro", "<", dataFimMes)
+        );
+
+        const querySnapshot = await getDocs(q);
+        const horasTrabalhadasPorFuncionario = {};
+        const diasTrabalhadosPorFuncionario = {};
+
+        let totalHorasDisponiveisMinutos = 0;
+        let totalHorasTrabalhadasMinutos = 0;
+
+        for (const funcionario in horasDisponiveisPorFuncionario) {
+            horasTrabalhadasPorFuncionario[funcionario] = 0;
+            diasTrabalhadosPorFuncionario[funcionario] = new Set();
+        }
+
+        querySnapshot.forEach(doc => {
+            const dados = doc.data();
+            const { nomeFuncionario, horaInicio, horaTermino, dataRegistro } = dados;
+
+            if (horasDisponiveisPorFuncionario.hasOwnProperty(nomeFuncionario)) {
+                const minutosTrabalhados = calcularDiferencaEmMinutos(horaInicio, horaTermino);
+                horasTrabalhadasPorFuncionario[nomeFuncionario] += minutosTrabalhados;
+                const dataString = dataRegistro.toDate().toISOString().split('T')[0];
+                diasTrabalhadosPorFuncionario[nomeFuncionario].add(dataString);
+            }
+        });
+
+        let tabelaHTML = `
+            <h2>Horas por Funcionário</h2>
+            <table class="tabela-contagem">
+                <thead>
+                    <tr>
+                        <th>Funcionário</th>
+                        <th>Horas Disponíveis</th>
+                        <th>Horas Trabalhadas</th>
+                        <th>Aproveitamento</th>
+                        <th>Dias Trabalhados</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        const funcionarios = Object.keys(horasDisponiveisPorFuncionario);
+
+        if (funcionarios.length === 0) {
+            tabelaHTML += `<tr><td colspan="5">Nenhum funcionário cadastrado ou dados para o período.</td></tr>`;
+        } else {
+            for (const funcionario of funcionarios) {
+                const diasTrabalhados = diasTrabalhadosPorFuncionario[funcionario].size;
+                const horasDisponiveisEmMinutos = diasTrabalhados * jornadaDiariaEmMinutos;
+                const horasTrabalhadasEmMinutos = horasTrabalhadasPorFuncionario[funcionario];
+
+                let aproveitamento = 0;
+                let corClasse = '';
+
+                if (horasDisponiveisEmMinutos > 0) {
+                    aproveitamento = (horasTrabalhadasEmMinutos / horasDisponiveisEmMinutos) * 100;
+                    if (aproveitamento > 100) {
+                        corClasse = 'red-text';
+                    } else if (aproveitamento < 50) {
+                        corClasse = 'yellow-text';
+                    }
+                }
+
+                if (diasTrabalhados > 0) {
+                    totalHorasDisponiveisMinutos += horasDisponiveisEmMinutos;
+                    totalHorasTrabalhadasMinutos += horasTrabalhadasEmMinutos;
+                }
+
+                tabelaHTML += `
+                    <tr>
+                        <td>${funcionario}</td>
+                        <td>${formatarMinutosParaHoras(horasDisponiveisEmMinutos)}</td>
+                        <td>${formatarMinutosParaHoras(horasTrabalhadasEmMinutos)}</td>
+                        <td class="${corClasse}">${aproveitamento.toFixed(2)}%</td>
+                        <td>${diasTrabalhados}</td>
+                    </tr>
+                `;
+            }
+
             let aproveitamentoTotalEquipe = 0;
             if (totalHorasDisponiveisMinutos > 0) {
                 aproveitamentoTotalEquipe = (totalHorasTrabalhadasMinutos / totalHorasDisponiveisMinutos) * 100;
@@ -871,16 +804,14 @@ if (document.getElementById('tabela-servicos')) {
         return tabelaHTML;
     }
 
-    // NOVA FUNÇÃO para exibir a contagem de serviços por tipo
     async function exibirQuantidadesDeServico(mesSelecionado, inserirNoHtml = false) {
         const quantidadesHTML = await gerarQuantidadesDeServicoHTML(mesSelecionado);
         if (inserirNoHtml) {
             const containerDados = document.getElementById('dados-turnos');
-            containerDados.innerHTML = quantidadesHTML;
+            if (containerDados) containerDados.innerHTML = quantidadesHTML;
         }
     }
 
-    // NOVA FUNÇÃO para gerar o HTML da tabela de contagem
     async function gerarQuantidadesDeServicoHTML(mesSelecionado) {
         try {
             if (!mesSelecionado) {
@@ -917,7 +848,6 @@ if (document.getElementById('tabela-servicos')) {
             querySnapshot.forEach(doc => {
                 const dados = doc.data();
                 const chave = `${dados.turno}-${dados.dia}-${dados.horaInicio}-${dados.horaTermino}`;
-
                 if (!servicosUnicos[chave]) {
                     servicosUnicos[chave] = dados;
                 }
@@ -962,9 +892,9 @@ if (document.getElementById('tabela-servicos')) {
             }
 
             horasHTML += `
-                        </tbody>
-                    </table>
-                `;
+                    </tbody>
+                </table>
+            `;
 
             return horasHTML;
 
@@ -974,7 +904,9 @@ if (document.getElementById('tabela-servicos')) {
         }
     }
 
-    // Função para carregar dados de serviço da base de dados e criar botões de edição
+    // ====================================================================
+    // CARREGAR DADOS NA TABELA (OTIMIZADO COM LIMIT(50))
+    // ====================================================================
     async function carregarDadosServicos() {
         try {
             const filtroAtual = filtroSelecao.value;
@@ -1011,17 +943,29 @@ if (document.getElementById('tabela-servicos')) {
                 }
             }
 
-            // Se nenhum filtro for aplicado ou o filtro estiver vazio, carregue todos os dados.
+            // Sem filtros: carrega apenas os últimos 50 serviços registrados
             if (!filtrosAplicados) {
-                q = query(servicosRef, orderBy("dataRegistro", "asc"), orderBy("horaInicio", "asc"), orderBy("nomeFuncionario", "asc"));
+                q = query(
+                    servicosRef, 
+                    orderBy("dataRegistro", "desc"),
+                    limit(50)
+                );
             }
 
             const querySnapshot = await getDocs(q);
             tabelaCorpo.innerHTML = '';
-            querySnapshot.forEach((doc) => {
-                const dados = doc.data();
+            
+            let documentos = [];
+            querySnapshot.forEach(doc => documentos.push({ id: doc.id, dados: doc.data() }));
+
+            // Se for a listagem padrão, inverte para exibir do mais antigo ao mais novo na tela
+            if (!filtrosAplicados) {
+                documentos.reverse();
+            }
+
+            documentos.forEach(({ id, dados }) => {
                 const row = tabelaCorpo.insertRow();
-                row.setAttribute('data-doc-id', doc.id); // Adiciona o ID do documento à linha para referência
+                row.setAttribute('data-doc-id', id);
 
                 row.insertCell(0).textContent = dados.nomeFuncionario;
 
@@ -1038,18 +982,16 @@ if (document.getElementById('tabela-servicos')) {
                 const cellAcoes = row.insertCell(7);
                 cellAcoes.classList.add('acoes-celula');
 
-                // Botão Editar
                 const btnEditar = document.createElement('button');
                 btnEditar.textContent = 'Editar';
                 btnEditar.classList.add('btn', 'btn-editar');
-                btnEditar.addEventListener('click', () => iniciarEdicao(doc.id, dados, row));
+                btnEditar.addEventListener('click', () => iniciarEdicao(id, dados, row));
                 cellAcoes.appendChild(btnEditar);
 
-                // Botão Excluir
                 const btnExcluir = document.createElement('button');
                 btnExcluir.textContent = 'Excluir';
                 btnExcluir.classList.add('btn', 'btn-excluir');
-                btnExcluir.addEventListener('click', () => excluirServico(doc.id));
+                btnExcluir.addEventListener('click', () => excluirServico(id));
                 cellAcoes.appendChild(btnExcluir);
             });
 
@@ -1064,21 +1006,15 @@ if (document.getElementById('tabela-servicos')) {
         }
     }
 
-    // NOVO: Função para iniciar o processo de edição
-    // Função para iniciar a edição
     function iniciarEdicao(docId, dados, row) {
-        // Encontra a linha da tabela a partir do docId
         const linha = document.querySelector(`tr[data-doc-id="${docId}"]`);
         if (!linha) return;
 
-        // Armazena os dados originais e o ID
         linha.setAttribute('data-doc-id', docId);
         linha.setAttribute('data-original-data', JSON.stringify(dados));
 
-        // Define os campos que são inputs editáveis
         const campos = ['nomeFuncionario', 'dataRegistro', 'horaInicio', 'horaTermino', 'nomeServico', 'tipoServico', 'turno'];
 
-        // Transforma cada célula em um input editável
         for (let i = 0; i < campos.length; i++) {
             const celula = linha.cells[i];
             let valorAtual = celula.textContent;
@@ -1087,10 +1023,9 @@ if (document.getElementById('tabela-servicos')) {
             const input = document.createElement('input');
             input.type = 'text';
 
-            // Lógica especial para a data
             if (campos[i] === 'dataRegistro') {
                 const dataObj = dados.dataRegistro.toDate();
-                input.type = 'date'; // Usa o tipo 'date' para um melhor seletor
+                input.type = 'date';
                 input.value = dataObj.toISOString().split('T')[0];
             } else {
                 input.value = valorAtual;
@@ -1100,7 +1035,6 @@ if (document.getElementById('tabela-servicos')) {
             celula.appendChild(input);
         }
 
-        // Substitui os botões de ação
         const celulaAcoes = linha.cells[7];
         celulaAcoes.innerHTML = '';
 
@@ -1108,7 +1042,7 @@ if (document.getElementById('tabela-servicos')) {
         btnSalvar.textContent = 'Salvar';
         btnSalvar.classList.add('btn', 'btn-salvar');
         btnSalvar.addEventListener('click', () => salvarEdicao(docId, linha));
-        celulaAcoes.appendChild(btnSalvar);
+        cellAcoes.appendChild(btnSalvar);
 
         const btnCancelar = document.createElement('button');
         btnCancelar.textContent = 'Cancelar';
@@ -1117,10 +1051,9 @@ if (document.getElementById('tabela-servicos')) {
             const originalData = JSON.parse(linha.getAttribute('data-original-data'));
             cancelarEdicao(linha, originalData);
         });
-        celulaAcoes.appendChild(btnCancelar);
+        cellAcoes.appendChild(btnCancelar);
     }
 
-    // NOVO: Função para salvar a edição no Firebase
     async function salvarEdicao(docId, row) {
         try {
             const servicoRef = doc(db, "servicos", docId);
@@ -1134,17 +1067,15 @@ if (document.getElementById('tabela-servicos')) {
                 turno: row.cells[6].querySelector('input').value
             };
 
-            // Atualiza a data de registro
             await updateDoc(servicoRef, dadosAtualizados);
             alert("Serviço atualizado com sucesso!");
-            carregarDadosServicos(); // Recarrega os dados para mostrar as alterações
+            carregarDadosServicos();
         } catch (error) {
             console.error("Erro ao atualizar documento: ", error);
             alert("Erro ao salvar. Verifique o console.");
         }
     }
 
-    // NOVO: Função para cancelar a edição
     function cancelarEdicao(row, originalData) {
         row.cells[0].innerHTML = originalData.nomeFuncionario;
         row.cells[1].innerHTML = originalData.dataRegistro.toDate().toLocaleDateString('pt-BR');
@@ -1170,14 +1101,13 @@ if (document.getElementById('tabela-servicos')) {
         cellAcoes.appendChild(btnExcluir);
     }
 
-    // NOVO: Função para excluir um serviço
     async function excluirServico(docId) {
         if (confirm("Tem certeza que deseja excluir este serviço?")) {
             try {
                 const servicoRef = doc(db, "servicos", docId);
                 await deleteDoc(servicoRef);
                 alert("Serviço excluído com sucesso!");
-                carregarDadosServicos(); // Recarrega os dados para remover a linha
+                carregarDadosServicos();
             } catch (error) {
                 console.error("Erro ao excluir documento: ", error);
                 alert("Erro ao excluir. Verifique o console.");
@@ -1185,112 +1115,14 @@ if (document.getElementById('tabela-servicos')) {
         }
     }
 
-    // Event Listeners
-    formFiltros.addEventListener('submit', (e) => {
-        e.preventDefault();
-        carregarDadosServicos();
-    });
-
-    filtroSelecao.addEventListener('change', () => {
-        Object.values(containersFiltro).forEach(container => container.style.display = 'none');
-        const filtroSelecionado = filtroSelecao.value;
-        if (filtroSelecionado !== 'nenhum') {
-            containersFiltro[filtroSelecionado].style.display = 'block';
-        }
-    });
-
-    btnLimpar.addEventListener('click', () => {
-        formFiltros.reset();
-        Object.values(containersFiltro).forEach(container => container.style.display = 'none');
-        carregarDadosServicos();
-    });
-
-    aplicarFiltroMesBtn.addEventListener('click', () => {
-        const mesSelecionado = filtroMesInput.value;
-        if (mesSelecionado) {
-            exibirQuantidadesDeServico(mesSelecionado, true);
-            exibirHorasPorFuncionario(mesSelecionado);
-        } else {
-            alert("Por favor, selecione um mês.");
-        }
-    });
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            carregarDadosServicos();
-        } else {
-            window.location.href = 'login.html';
-        }
-    });
-
-    document.getElementById('logout').addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            window.location.href = 'login.html';
-        } catch (error) {
-            console.error("Erro ao fazer logout: ", error);
-        }
-    });
-
-
-
-    // ======================================================================================
-    // FIM DAS FUNÇÕES
-    // ======================================================================================
-
-    // Listener para o novo botão de filtro por mês
-    if (aplicarFiltroMesBtn) {
-        aplicarFiltroMesBtn.addEventListener('click', () => {
-            exibirQuantidadesDeServico(filtroMesInput.value, true);
-            exibirHorasPorFuncionario(filtroMesInput.value);
-        });
-    }
-
-    // Listener para o botão de alternância (agora mostra contagem)
-    toggleBtn.addEventListener('click', () => {
-        if (visualizadorHoras.style.display === 'none') {
-            visualizadorHoras.style.display = 'block';
-            toggleBtn.textContent = 'Ocultar Resumo';
-            exibirQuantidadesDeServico(filtroMesInput.value, true);
-            exibirHorasPorFuncionario(filtroMesInput.value);
-        } else {
-            visualizadorHoras.style.display = 'none';
-            toggleBtn.textContent = 'Mostrar Resumo';
-        }
-    });
-
-    // Adiciona os listeners para o modal
-    exportarPDFBtn.addEventListener('click', () => {
-        modalContainer.style.display = 'flex';
-    });
-
-    modalCancelarBtn.addEventListener('click', () => {
-        modalContainer.style.display = 'none';
-    });
-
-    modalExportarBtn.addEventListener('click', () => {
-        const mesSelecionado = modalFiltroData.value;
-        if (mesSelecionado) {
-            exportarParaPDF(mesSelecionado);
-            modalContainer.style.display = 'none';
-        } else {
-            alert("Por favor, selecione um mês para exportar.");
-        }
-    });
-
-    window.addEventListener('click', (event) => {
-        if (event.target === modalContainer) {
-            modalContainer.style.display = 'none';
-        }
-    });
-
+    // ====================================================================
+    // EVENT LISTENERS UNIFICADOS (ADMIN)
+    // ====================================================================
     filtroSelecao.addEventListener('change', (e) => {
         for (const key in containersFiltro) {
             containersFiltro[key].style.display = 'none';
             const input = containersFiltro[key].querySelector('input, select');
-            if (input) {
-                input.value = '';
-            }
+            if (input) input.value = '';
         }
         const filtroSelecionado = e.target.value;
         if (filtroSelecionado !== 'nenhum' && containersFiltro[filtroSelecionado]) {
@@ -1311,22 +1143,79 @@ if (document.getElementById('tabela-servicos')) {
         carregarDadosServicos();
     });
 
+    if (aplicarFiltroMesBtn) {
+        aplicarFiltroMesBtn.addEventListener('click', () => {
+            const mesSelecionado = filtroMesInput.value;
+            if (mesSelecionado) {
+                exibirQuantidadesDeServico(mesSelecionado, true);
+                exibirHorasPorFuncionario(mesSelecionado);
+            } else {
+                alert("Por favor, selecione um mês.");
+            }
+        });
+    }
+
+    if (toggleBtn && visualizadorHoras) {
+        toggleBtn.addEventListener('click', () => {
+            if (visualizadorHoras.style.display === 'none') {
+                visualizadorHoras.style.display = 'block';
+                toggleBtn.textContent = 'Ocultar Resumo';
+                exibirQuantidadesDeServico(filtroMesInput.value, true);
+                exibirHorasPorFuncionario(filtroMesInput.value);
+            } else {
+                visualizadorHoras.style.display = 'none';
+                toggleBtn.textContent = 'Mostrar Resumo';
+            }
+        });
+    }
+
+    if (exportarPDFBtn && modalContainer) {
+        exportarPDFBtn.addEventListener('click', () => {
+            modalContainer.style.display = 'flex';
+        });
+
+        modalCancelarBtn.addEventListener('click', () => {
+            modalContainer.style.display = 'none';
+        });
+
+        modalExportarBtn.addEventListener('click', () => {
+            const mesSelecionado = modalFiltroData.value;
+            if (mesSelecionado) {
+                exportarParaPDF(mesSelecionado);
+                modalContainer.style.display = 'none';
+            } else {
+                alert("Por favor, selecione um mês para exportar.");
+            }
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === modalContainer) {
+                modalContainer.style.display = 'none';
+            }
+        });
+    }
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
             carregarDadosServicos();
-            exibirQuantidadesDeServico(filtroMesInput.value, true);
-            exibirHorasPorFuncionario(filtroMesInput.value);
+            if (filtroMesInput && filtroMesInput.value) {
+                exibirQuantidadesDeServico(filtroMesInput.value, true);
+                exibirHorasPorFuncionario(filtroMesInput.value);
+            }
         } else {
             window.location.href = 'login.html';
         }
     });
 
-    document.getElementById('logout').addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            window.location.href = 'login.html';
-        } catch (error) {
-            console.error("Erro ao fazer logout: ", error);
-        }
-    });
+    const logoutBtn = document.getElementById('logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error("Erro ao fazer logout: ", error);
+            }
+        });
+    }
 }
